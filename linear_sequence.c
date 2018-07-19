@@ -21,6 +21,20 @@ LSQ_HandleT LSQ_CreateSequence(){
     return (((LSQ_HandleT)(Mmas)));
 }
 
+void LSQ_UpdSize(LSQ_HandleT handle){
+    ((LSQ*)(handle))->celements++;
+    if (((LSQ*)(handle))->size < ((LSQ*)(handle))->celements ){
+        if (((LSQ*)(handle))->size == 0 ){
+            ((LSQ*)(handle))->size = 1;
+        }
+        ((LSQ*)(handle))->head = realloc(((LSQ*)(handle))->head, sizeof(LSQ_BaseTypeT) * (((LSQ*)(handle))->size * 2) );
+        ((LSQ*)(handle))->size *= 2;
+    }
+
+}
+
+
+
 void LSQ_DestroySequence(LSQ_HandleT handle){
     if (handle == LSQ_HandleInvalid) return;
     free((((LSQ*)(handle)))->head);
@@ -132,13 +146,7 @@ void LSQ_InsertFrontElement(LSQ_HandleT handle, LSQ_BaseTypeT element){
     if (((LSQ*)(handle)) == LSQ_HandleInvalid) return;
     ((LSQ*)(handle))->celements++;
 
-    if (((LSQ*)(handle))->size < ((LSQ*)(handle))->celements ){
-        if (((LSQ*)(handle))->size == 0 ){
-            ((LSQ*)(handle))->size = 1;
-        }
-        ((LSQ*)(handle))->head = realloc(((LSQ*)(handle))->head, sizeof(LSQ_BaseTypeT) * (((LSQ*)(handle))->size * 2) );
-        ((LSQ*)(handle))->size *= 2;
-    }
+    LSQ_UpdSize(handle);
 
     memmove(((LSQ*)(handle))->head + 1, ((LSQ*)(handle))->head, sizeof(LSQ_BaseTypeT) * (((LSQ*)(handle))->celements - 1));
     *(((LSQ*)(handle))->head) = element;
@@ -146,31 +154,24 @@ void LSQ_InsertFrontElement(LSQ_HandleT handle, LSQ_BaseTypeT element){
 
 void LSQ_InsertRearElement(LSQ_HandleT handle, LSQ_BaseTypeT element){
     if (((LSQ*)(handle)) == LSQ_HandleInvalid) return;
-    ((LSQ*)(handle))->celements++;
 
-
-    if (((LSQ*)(handle))->size < ((LSQ*)(handle))->celements ){
-        if (((LSQ*)(handle))->size == 0 ){
-            ((LSQ*)(handle))->size = 1;
-        }
-        ((LSQ*)(handle))->head = realloc(((LSQ*)(handle))->head, sizeof(LSQ_BaseTypeT) * (((LSQ*)(handle))->size  * 2) );
-        ((LSQ*)(handle))->size *= 2;
-    }
+    LSQ_UpdSize(handle);
 
     *(((LSQ*)(handle))->head + ((LSQ*)(handle))->celements - 1) = element;
 }
 
 void LSQ_InsertElementBeforeGiven(LSQ_IteratorT iterator, LSQ_BaseTypeT newElement){
     if (((LSQ_Iterator*)(iterator)) == NULL) return;
-    ((LSQ_Iterator*)(iterator))->handle->celements++;
-    if(((LSQ_Iterator*)(iterator))->handle->celements > ((LSQ_Iterator*)(iterator))->handle->size ) {
-        ((LSQ_Iterator *) (iterator))->handle->head = realloc(((LSQ_Iterator *) (iterator))->handle->head,
-                                                              sizeof(LSQ_BaseTypeT) * (((LSQ_Iterator *)(iterator))->handle->size * 2));
-        ((LSQ_Iterator *)(iterator))->handle->size *= 2;
-    }
+
+
+    LSQ_HandleT* temp = ((LSQ_Iterator)(iterator))->handle;
+
+    LSQ_UpdSize(temp);
+
     memmove(((LSQ_Iterator*)(iterator))->handle->head + ((LSQ_Iterator*)(iterator))->index + 1,
             ((LSQ_Iterator*)(iterator))->handle->head + ((LSQ_Iterator*)(iterator))->index,
             sizeof(LSQ_BaseTypeT) * (((LSQ_Iterator*)(iterator))->handle->celements -((LSQ_Iterator*)(iterator))->index - 1));
+
     (*(((LSQ_Iterator*)(iterator))->handle->head + ((LSQ_Iterator*)(iterator))->index)) = newElement;
 }
 
@@ -192,5 +193,5 @@ void LSQ_DeleteGivenElement(LSQ_IteratorT iterator){
     ((LSQ_Iterator*)(iterator))->handle->celements--;
     memmove(((LSQ_Iterator*)(iterator))->handle->head + ((LSQ_Iterator*)(iterator))->index,
             ((LSQ_Iterator*)(iterator))->handle->head + ((LSQ_Iterator*)(iterator))->index + 1,
-            sizeof(LSQ_BaseTypeT) * (((LSQ_Iterator*)(iterator))->handle->celements - ((LSQ_Iterator*)(iterator))->index));    
+            sizeof(LSQ_BaseTypeT) * (((LSQ_Iterator*)(iterator))->handle->celements - ((LSQ_Iterator*)(iterator))->index));
 }
